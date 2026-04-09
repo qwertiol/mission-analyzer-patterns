@@ -17,7 +17,10 @@ public class TxtMissionParser implements MissionParser {
         List<Sorcerer> sorcerers = new ArrayList<>();
         List<Technique> techniques = new ArrayList<>();
         EnvironmentConditions env = new EnvironmentConditions();
+        Curse curse = null;
         String currentSection = null;
+        Sorcerer currentSorcerer = null;
+        Technique currentTechnique = null;
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
@@ -42,27 +45,35 @@ public class TxtMissionParser implements MissionParser {
                         case "damageCost": builder.setDamageCost(Long.parseLong(value)); break;
                     }
                 } else if (currentSection.equals("CURSE")) {
-                    Curse curse = new Curse();
+                    if (curse == null) curse = new Curse();
                     if (key.equals("name")) curse.setName(value);
                     else if (key.equals("threatLevel")) curse.setThreatLevel(value);
-                    builder.setCurse(curse);
                 } else if (currentSection.equals("SORCERER")) {
-                    if (key.equals("name") || key.equals("rank")) {
-                        Sorcerer last = sorcerers.isEmpty() ? null : sorcerers.get(sorcerers.size() - 1);
-                        if (last == null || (last.getName() != null && last.getRank() != null)) {
-                            last = new Sorcerer();
-                            sorcerers.add(last);
-                        }
-                        if (key.equals("name")) last.setName(value);
-                        else if (key.equals("rank")) last.setRank(value);
+                    if (currentSorcerer == null) {
+                        currentSorcerer = new Sorcerer();
+                        sorcerers.add(currentSorcerer);
+                    }
+                    if (key.equals("name")) currentSorcerer.setName(value);
+                    else if (key.equals("rank")) currentSorcerer.setRank(value);
+                    if (currentSorcerer.getName() != null && currentSorcerer.getRank() != null) {
+                        currentSorcerer = null; // готово, следующий SORCERER создаст нового
                     }
                 } else if (currentSection.equals("TECHNIQUE")) {
-                    Technique t = new Technique();
-                    t.setName(key.equals("name") ? value : null);
-                    t.setType(key.equals("type") ? value : null);
-                    t.setOwner(key.equals("owner") ? value : null);
-                    if (key.equals("damage")) t.setDamage(Long.parseLong(value));
-                    techniques.add(t);
+                    if (currentTechnique == null) {
+                        currentTechnique = new Technique();
+                        techniques.add(currentTechnique);
+                    }
+                    switch (key) {
+                        case "name": currentTechnique.setName(value); break;
+                        case "type": currentTechnique.setType(value); break;
+                        case "owner": currentTechnique.setOwner(value); break;
+                        case "damage": currentTechnique.setDamage(Long.parseLong(value)); break;
+                    }
+                    // если все поля заполнены (хотя бы name, type, owner, damage не обязательны все), но для простоты:
+                    if (currentTechnique.getName() != null && currentTechnique.getType() != null &&
+                        currentTechnique.getOwner() != null && currentTechnique.getDamage() != 0) {
+                        currentTechnique = null;
+                    }
                 } else if (currentSection.equals("ENVIRONMENT")) {
                     switch (key) {
                         case "weather": env.setWeather(value); break;
@@ -73,6 +84,7 @@ public class TxtMissionParser implements MissionParser {
                 }
             }
         }
+        if (curse != null) builder.setCurse(curse);
         builder.setSorcerers(sorcerers);
         builder.setTechniques(techniques);
         if (env.getWeather() != null || env.getTimeOfDay() != null || env.getVisibility() != null || env.getCursedEnergyDensity() != null)

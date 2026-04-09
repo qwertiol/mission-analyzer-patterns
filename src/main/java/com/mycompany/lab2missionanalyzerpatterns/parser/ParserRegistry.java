@@ -18,6 +18,7 @@ public class ParserRegistry {
                 return entry.getValue();
             }
         }
-        throw new IllegalArgumentException("No parser found for file: " + file.getName());
+        // fallback: если ни один парсер не подошёл, используем универсальный CustomMissionParser
+        return new CustomMissionParser();
     }
 }

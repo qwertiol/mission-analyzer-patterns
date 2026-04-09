@@ -19,6 +19,9 @@ public class CustomMissionParser implements MissionParser {
         List<Technique> techniques = new ArrayList<>();
         List<TimelineEvent> timeline = new ArrayList<>();
         CivilianImpact civilianImpact = null;
+        EnemyActivity enemyActivity = null;
+        String outcome = null;
+        Long damageCost = null;
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
@@ -38,59 +41,49 @@ public class CustomMissionParser implements MissionParser {
                         break;
                     case "CURSE_DETECTED":
                         if (parts.length >= 3) {
-                            Curse curse = new Curse(parts[1], parts[2]);
-                            builder.setCurse(curse);
+                            builder.setCurse(new Curse(parts[1], parts[2]));
                         }
                         break;
                     case "SORCERER_ASSIGNED":
                         if (parts.length >= 3) {
-                            Sorcerer s = new Sorcerer(parts[1], parts[2]);
-                            sorcerers.add(s);
+                            sorcerers.add(new Sorcerer(parts[1], parts[2]));
                         }
                         break;
                     case "TECHNIQUE_USED":
                         if (parts.length >= 5) {
-                            Technique t = new Technique(parts[1], parts[2], parts[3], Long.parseLong(parts[4]));
-                            techniques.add(t);
+                            techniques.add(new Technique(parts[1], parts[2], parts[3], Long.parseLong(parts[4])));
                         }
                         break;
                     case "TIMELINE_EVENT":
                         if (parts.length >= 4) {
-                            TimelineEvent event = new TimelineEvent(LocalDateTime.parse(parts[1]), parts[2], parts[3]);
-                            timeline.add(event);
+                            timeline.add(new TimelineEvent(LocalDateTime.parse(parts[1]), parts[2], parts[3]));
                         }
                         break;
                     case "ENEMY_ACTION":
                         if (parts.length >= 3) {
-                            // упрощённо: собираем поведение в enemyActivity
-                            EnemyActivity ea = builder.build().getEnemyActivity();
-                            if (ea == null) ea = new EnemyActivity();
-                            if (ea.getAttackPatterns() == null) ea.setAttackPatterns(new ArrayList<>());
-                            ea.getAttackPatterns().add(parts[1] + ": " + parts[2]);
-                            builder.setEnemyActivity(ea);
+                            if (enemyActivity == null) enemyActivity = new EnemyActivity();
+                            if (enemyActivity.getAttackPatterns() == null) enemyActivity.setAttackPatterns(new ArrayList<>());
+                            enemyActivity.getAttackPatterns().add(parts[1] + ": " + parts[2]);
                         }
                         break;
                     case "CIVILIAN_IMPACT":
-                        if (parts.length >= 2) {
-                            civilianImpact = new CivilianImpact();
-                            for (int i = 1; i < parts.length; i++) {
-                                String[] kv = parts[i].split("=");
-                                if (kv.length == 2) {
-                                    switch (kv[0]) {
-                                        case "evacuated": civilianImpact.setEvacuated(Integer.parseInt(kv[1])); break;
-                                        case "injured": civilianImpact.setInjured(Integer.parseInt(kv[1])); break;
-                                        case "missing": civilianImpact.setMissing(Integer.parseInt(kv[1])); break;
-                                    }
+                        civilianImpact = new CivilianImpact();
+                        for (int i = 1; i < parts.length; i++) {
+                            String[] kv = parts[i].split("=");
+                            if (kv.length == 2) {
+                                switch (kv[0]) {
+                                    case "evacuated": civilianImpact.setEvacuated(Integer.parseInt(kv[1])); break;
+                                    case "injured": civilianImpact.setInjured(Integer.parseInt(kv[1])); break;
+                                    case "missing": civilianImpact.setMissing(Integer.parseInt(kv[1])); break;
                                 }
                             }
                         }
                         break;
                     case "MISSION_RESULT":
                         if (parts.length >= 2) {
-                            builder.setOutcome(parts[1]);
+                            outcome = parts[1];
                             if (parts.length >= 3 && parts[2].startsWith("damageCost=")) {
-                                String dmg = parts[2].substring("damageCost=".length());
-                                builder.setDamageCost(Long.parseLong(dmg));
+                                damageCost = Long.parseLong(parts[2].substring("damageCost=".length()));
                             }
                         }
                         break;
@@ -101,6 +94,9 @@ public class CustomMissionParser implements MissionParser {
         builder.setTechniques(techniques);
         builder.setTimelineEvents(timeline);
         if (civilianImpact != null) builder.setCivilianImpact(civilianImpact);
+        if (enemyActivity != null) builder.setEnemyActivity(enemyActivity);
+        if (outcome != null) builder.setOutcome(outcome);
+        if (damageCost != null) builder.setDamageCost(damageCost);
         return builder.build();
     }
 }
