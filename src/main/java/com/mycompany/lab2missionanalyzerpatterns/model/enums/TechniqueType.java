@@ -1,0 +1,23 @@
+package com.mycompany.lab2missionanalyzerpatterns.model.enums;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
+public enum TechniqueType {
+    INNATE, SHIKIGAMI, WEAPON, BODY, UNKNOWN;
+
+    @JsonCreator
+    public static TechniqueType fromString(String value) {
+        if (value == null) return UNKNOWN;
+        try {
+            return TechniqueType.valueOf(value.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return UNKNOWN;
+        }
+    }
+
+    @JsonValue
+    public String toValue() {
+        return name();
+    }
+}

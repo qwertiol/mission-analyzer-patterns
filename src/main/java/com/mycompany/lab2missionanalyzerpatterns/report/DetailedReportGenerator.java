@@ -58,7 +58,7 @@ public class DetailedReportGenerator implements ReportGenerator {
                 System.out.println("  " + e.getTimestamp() + " - " + e.getType() + ": " + e.getDescription());
             }
         }
-        
+
         if (mission.getComment() != null) System.out.println("Комментарий: " + mission.getComment());
     }
 }

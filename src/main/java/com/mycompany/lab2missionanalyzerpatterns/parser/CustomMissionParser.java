@@ -2,14 +2,15 @@ package com.mycompany.lab2missionanalyzerpatterns.parser;
 
 import com.mycompany.lab2missionanalyzerpatterns.builder.MissionBuilder;
 import com.mycompany.lab2missionanalyzerpatterns.model.*;
+import com.mycompany.lab2missionanalyzerpatterns.model.enums.*;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class CustomMissionParser implements MissionParser {
     @Override
@@ -20,7 +21,7 @@ public class CustomMissionParser implements MissionParser {
         List<TimelineEvent> timeline = new ArrayList<>();
         CivilianImpact civilianImpact = null;
         EnemyActivity enemyActivity = null;
-        String outcome = null;
+        String outcomeStr = null;
         Long damageCost = null;
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
@@ -41,17 +42,28 @@ public class CustomMissionParser implements MissionParser {
                         break;
                     case "CURSE_DETECTED":
                         if (parts.length >= 3) {
-                            builder.setCurse(new Curse(parts[1], parts[2]));
+                            Curse curse = new Curse();
+                            curse.setName(parts[1]);
+                            curse.setThreatLevelString(parts[2]);
+                            builder.setCurse(curse);
                         }
                         break;
                     case "SORCERER_ASSIGNED":
                         if (parts.length >= 3) {
-                            sorcerers.add(new Sorcerer(parts[1], parts[2]));
+                            Sorcerer s = new Sorcerer();
+                            s.setName(parts[1]);
+                            s.setRankString(parts[2]);
+                            sorcerers.add(s);
                         }
                         break;
                     case "TECHNIQUE_USED":
                         if (parts.length >= 5) {
-                            techniques.add(new Technique(parts[1], parts[2], parts[3], Long.parseLong(parts[4])));
+                            Technique t = new Technique();
+                            t.setName(parts[1]);
+                            t.setTypeString(parts[2]);
+                            t.setOwner(parts[3]);
+                            t.setDamage(Long.parseLong(parts[4]));
+                            techniques.add(t);
                         }
                         break;
                     case "TIMELINE_EVENT":
@@ -62,7 +74,8 @@ public class CustomMissionParser implements MissionParser {
                     case "ENEMY_ACTION":
                         if (parts.length >= 3) {
                             if (enemyActivity == null) enemyActivity = new EnemyActivity();
-                            if (enemyActivity.getAttackPatterns() == null) enemyActivity.setAttackPatterns(new ArrayList<>());
+                            if (enemyActivity.getAttackPatterns() == null)
+                                enemyActivity.setAttackPatterns(new ArrayList<>());
                             enemyActivity.getAttackPatterns().add(parts[1] + ": " + parts[2]);
                         }
                         break;
@@ -75,13 +88,14 @@ public class CustomMissionParser implements MissionParser {
                                     case "evacuated": civilianImpact.setEvacuated(Integer.parseInt(kv[1])); break;
                                     case "injured": civilianImpact.setInjured(Integer.parseInt(kv[1])); break;
                                     case "missing": civilianImpact.setMissing(Integer.parseInt(kv[1])); break;
+                                    case "publicExposureRisk": civilianImpact.setPublicExposureRiskString(kv[1]); break;
                                 }
                             }
                         }
                         break;
                     case "MISSION_RESULT":
                         if (parts.length >= 2) {
-                            outcome = parts[1];
+                            outcomeStr = parts[1];
                             if (parts.length >= 3 && parts[2].startsWith("damageCost=")) {
                                 damageCost = Long.parseLong(parts[2].substring("damageCost=".length()));
                             }
@@ -90,12 +104,13 @@ public class CustomMissionParser implements MissionParser {
                 }
             }
         }
+
         builder.setSorcerers(sorcerers);
         builder.setTechniques(techniques);
         builder.setTimelineEvents(timeline);
         if (civilianImpact != null) builder.setCivilianImpact(civilianImpact);
         if (enemyActivity != null) builder.setEnemyActivity(enemyActivity);
-        if (outcome != null) builder.setOutcome(outcome);
+        if (outcomeStr != null) builder.setOutcomeString(outcomeStr);
         if (damageCost != null) builder.setDamageCost(damageCost);
         return builder.build();
     }

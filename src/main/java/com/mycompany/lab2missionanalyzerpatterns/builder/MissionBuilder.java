@@ -1,21 +1,24 @@
 package com.mycompany.lab2missionanalyzerpatterns.builder;
 
 import com.mycompany.lab2missionanalyzerpatterns.model.*;
+import com.mycompany.lab2missionanalyzerpatterns.model.enums.MissionOutcome;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
-/*
-Централизованный строитель для объектов Mission
-Порождающий паттерн "Строитель" (Builder)
- */
 public class MissionBuilder {
     private final Mission.Builder builder = new Mission.Builder();
 
     public MissionBuilder setMissionId(String id) { builder.missionId(id); return this; }
     public MissionBuilder setDate(LocalDate date) { builder.date(date); return this; }
     public MissionBuilder setLocation(String location) { builder.location(location); return this; }
-    public MissionBuilder setOutcome(String outcome) { builder.outcome(outcome); return this; }
+
+    public MissionBuilder setOutcome(MissionOutcome outcome) { builder.outcome(outcome); return this; }
+
+    public MissionBuilder setOutcomeString(String outcomeStr) {
+        builder.outcome(MissionOutcome.fromString(outcomeStr));
+        return this;
+    }
+
     public MissionBuilder setDamageCost(long cost) { builder.damageCost(cost); return this; }
     public MissionBuilder setCurse(Curse curse) { builder.curse(curse); return this; }
     public MissionBuilder setSorcerers(List<Sorcerer> sorcerers) { builder.sorcerers(sorcerers); return this; }
