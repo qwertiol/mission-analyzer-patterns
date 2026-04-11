@@ -48,7 +48,6 @@ public class Main {
             reportGenerator.generate(mission);
         } catch (Exception e) {
             System.err.println("Ошибка при обработке: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 }

@@ -16,8 +16,4 @@ public enum PublicExposureRisk {
         }
     }
 
-    @JsonValue
-    public String toValue() {
-        return name();
-    }
 }

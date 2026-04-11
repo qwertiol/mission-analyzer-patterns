@@ -1,7 +1,6 @@
 package com.mycompany.lab2missionanalyzerpatterns.model.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum Mobility {
     HIGH, MEDIUM, LOW, UNKNOWN;
@@ -16,8 +15,4 @@ public enum Mobility {
         }
     }
 
-    @JsonValue
-    public String toValue() {
-        return name();
-    }
 }
